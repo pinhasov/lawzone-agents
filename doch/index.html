@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>דוח הכנסות והוצאות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Heebo:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow column, a step rail on top, one task per screen, sticky action bar at the bottom */
+:root{
+  --bg:#F4F6F8; --surface:#FFFFFF; --ink:#16202C; --muted:#5B6878; --line:#D9DFE6;
+  --accent:#1E5C86; --accent-ink:#FFFFFF; --accent-soft:#E6EFF6;
+  --good:#2C7A4B; --bad:#B0422E; --warn-soft:#FBF3E4; --warn-ink:#7A5310;
+  --display:"Frank Ruhl Libre", "David", Georgia, serif;
+  --body:"Heebo", "Arial Hebrew", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F151C; --surface:#18212B; --ink:#E7EDF3; --muted:#9AA8B7; --line:#2C3946;
+  --accent:#6FB0DC; --accent-ink:#0B1520; --accent-soft:#1C3142;
+  --good:#6CC28F; --bad:#EE8A76; --warn-soft:#2E2617; --warn-ink:#E8C27A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F151C; --surface:#18212B; --ink:#E7EDF3; --muted:#9AA8B7; --line:#2C3946;
+  --accent:#6FB0DC; --accent-ink:#0B1520; --accent-soft:#1C3142;
+  --good:#6CC28F; --bad:#EE8A76; --warn-soft:#2E2617; --warn-ink:#E8C27A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;direction:rtl}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 120px}
+header.top{display:grid;gap:4px;margin-bottom:18px}
+.eyebrow{font-size:13px;color:var(--muted);letter-spacing:.02em}
+h1{font-family:var(--display);font-weight:700;font-size:28px;line-height:1.2;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:22px;margin:0 0 4px;text-wrap:balance}
+.lead{color:var(--muted);margin:0 0 16px}
+.demo{background:var(--warn-soft);color:var(--warn-ink);border-radius:10px;padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+.demo button{font:inherit;font-size:14px;background:transparent;border:1px solid currentColor;color:inherit;border-radius:8px;padding:4px 10px;cursor:pointer}
+
+.rail{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:22px}
+.rail button{all:unset;cursor:pointer;display:grid;gap:6px;font-size:12px;color:var(--muted);text-align:center}
+.rail button::before{content:"";height:4px;border-radius:4px;background:var(--line)}
+.rail button.done::before{background:var(--accent);opacity:.45}
+.rail button.on{color:var(--ink);font-weight:600}
+.rail button.on::before{background:var(--accent)}
+.rail button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+@media (max-width:420px){.rail span{display:none}}
+
+section.step{display:grid;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+@media (max-width:460px){.grid3{grid-template-columns:1fr 1fr}.grid3 .wide{grid-column:1/-1}}
+label.f{display:grid;gap:6px;font-weight:500;font-size:15px;min-width:0}
+.hint{font-weight:400;font-size:13px;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+input.num{direction:ltr;text-align:right;font-variant-numeric:tabular-nums}
+.invalid{border-color:var(--bad)!important}
+
+.row{display:grid;gap:8px;padding-block:12px;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0;padding-top:0}
+.row-h{display:flex;gap:10px;align-items:baseline}
+.row-h .n{color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px;min-width:22px}
+.row-h b{font-weight:600}
+.row .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pair label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.extra-desc{margin-bottom:2px}
+.add{all:unset;cursor:pointer;color:var(--accent);font-weight:600;font-size:15px;padding:6px 0}
+.add:focus-visible{outline:2px solid var(--accent);border-radius:4px}
+.note{font-size:13px;color:var(--muted);background:var(--accent-soft);border-radius:10px;padding:10px 12px}
+
+.totals{display:grid;grid-template-columns:1fr auto auto;gap:6px 16px;align-items:baseline;font-variant-numeric:tabular-nums}
+.totals .h{font-size:12px;color:var(--muted);text-align:left}
+.totals .v{text-align:left;font-weight:600;direction:ltr}
+.totals .lbl{font-weight:500}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+
+.drop{border:1.5px dashed var(--line);border-radius:12px;padding:18px;text-align:center;display:grid;gap:6px;cursor:pointer}
+.drop:focus-within{border-color:var(--accent)}
+.drop input{display:none}
+.files{display:grid;gap:8px;list-style:none;margin:0;padding:0}
+.files li{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--bg);border-radius:10px;padding:8px 12px;font-size:14px}
+.files li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.files button{all:unset;cursor:pointer;color:var(--bad);font-size:13px}
+
+.check{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+.check input{width:20px;height:20px;flex:none;margin-top:3px;accent-color:var(--accent)}
+.sigbox{position:relative;border:1px solid var(--line);border-radius:12px;background:#FFFFFF;height:170px;touch-action:none}
+.sigbox canvas{width:100%;height:100%;display:block;border-radius:12px}
+.sigbox .ph{position:absolute;inset:0;display:grid;place-items:center;color:#8A96A3;pointer-events:none;font-size:14px}
+.sigbar{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.sigbar button{all:unset;cursor:pointer;color:var(--accent)}
+
+/* the printable report — mirrors the official two-column layout */
+.report-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#FFFFFF}
+.report{color:#111;background:#FFFFFF;padding:22px;min-width:520px;font-family:var(--body);font-size:13px;direction:rtl}
+.report h3{font-family:var(--display);font-size:19px;text-align:center;margin:0 0 6px}
+.report .meta{text-align:center;margin:0 0 14px;line-height:1.8}
+.report .meta u{text-decoration:none;border-bottom:1px solid #111;padding:0 6px;font-weight:600}
+.report table{width:100%;border-collapse:collapse;margin-bottom:14px;font-variant-numeric:tabular-nums}
+.report th,.report td{border:1px solid #444;padding:5px 7px;text-align:right;vertical-align:top}
+.report th{background:#EEF1F4;font-weight:700}
+.report td.m{width:22%;text-align:left;direction:ltr}
+.report td.i{width:34px;text-align:center;color:#555}
+.report tr.sum td{font-weight:700;background:#F5F7F9}
+.report .sub{font-weight:400;font-size:11px;color:#444}
+.report .decl{border:1px solid #444;padding:10px;line-height:1.7;margin-top:6px}
+.report .sig{display:flex;justify-content:space-between;align-items:flex-end;margin-top:12px;gap:16px}
+.report .sig img{height:60px;border-bottom:1px solid #111}
+
+.bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.bar .in{max-width:640px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.btn{font:inherit;font-weight:600;border-radius:12px;padding:12px 20px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);flex:1}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.saved{font-size:12px;color:var(--muted);min-width:0}
+.err{color:var(--bad);font-size:14px}
+.ok{display:grid;gap:10px;text-align:center;padding:30px 10px}
+.ok .big{font-family:var(--display);font-size:26px}
+@media (prefers-reduced-motion: no-preference){section.step{animation:in .25s ease-out}@keyframes in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">חוק חדלות פירעון ושיקום כלכלי · טופס עדכון 2.12.2021</div>
+    <h1>דוח הכנסות והוצאות חודשי</h1>
+    <p class="lead">ממלאים בשלבים קצרים, ובסוף הדוח נשלח ישירות למשרד עורך הדין. הנתונים נשמרים אוטומטית במכשיר שלך, כך שאפשר להפסיק ולהמשיך אחר כך.</p>
+  </header>
+
+  <div class="demo" id="demoBanner" hidden>
+    <span>תצוגה לבדיקה: השליחה למייל תפעל אחרי שהטופס יעלה לאתר.</span>
+    <button type="button" id="fillSample">מילוי נתוני דוגמה</button>
+  </div>
+
+  <nav class="rail" id="rail" aria-label="שלבי הטופס"></nav>
+
+  <form id="f" novalidate>
+    <!-- 1. details -->
+    <section class="step" data-step="0" data-title="פרטים">
+      <div><h2>פרטים כלליים</h2><p class="lead">על אילו חודשים הדוח, ומי מגיש אותו.</p></div>
+      <div class="card">
+        <label class="f">שם מלא של החייב/ת<input id="name" autocomplete="name" required></label>
+        <label class="f">מספר תיק אצל הממונה<span class="hint">מופיע בכל מכתב מהממונה על הליכי חדלות פירעון</span><input id="caseNo" inputmode="numeric" required></label>
+        <div class="grid3">
+          <label class="f wide">שנה<select id="year"></select></label>
+          <label class="f">חודש ראשון<select id="m1"></select></label>
+          <label class="f">חודש שני<select id="m2"></select></label>
+        </div>
+      </div>
+      <div class="card">
+        <div class="grid3">
+          <label class="f wide">עיר / יישוב<input id="city" autocomplete="address-level2" required></label>
+          <label class="f">בית<input id="house" inputmode="numeric"></label>
+          <label class="f">כניסה<input id="entrance"></label>
+        </div>
+        <label class="f">רחוב<input id="street" autocomplete="address-line1" required></label>
+        <label class="f">טלפון<input id="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
+      </div>
+    </section>
+
+    <!-- 2. income -->
+    <section class="step" data-step="1" data-title="הכנסות" hidden>
+      <div><h2>הכנסות</h2><p class="lead">רושמים סכומים בשקלים לכל אחד משני החודשים. שורה שאין בה הכנסה משאירים ריקה.</p></div>
+      <div class="note">כוללים את ההכנסות שלך, של בן/בת הזוג, של הילדים הקטינים ושל כל מי שפרנסתו עליך.</div>
+      <div class="card" id="incomeRows"></div>
+      <div class="card" id="incomeTotals"></div>
+    </section>
+
+    <!-- 3. expenses -->
+    <section class="step" data-step="2" data-title="הוצאות" hidden>
+      <div><h2>הוצאות</h2><p class="lead">ההוצאות החודשיות של משק הבית. אפשר לרשום סכום משוער אם אין קבלה מדויקת.</p></div>
+      <div class="card" id="expenseRows"></div>
+      <div class="card" id="expenseTotals"></div>
+    </section>
+
+    <!-- 4. documents -->
+    <section class="step" data-step="3" data-title="מסמכים" hidden>
+      <div><h2>מסמכים מצורפים</h2><p class="lead">יש לצרף מסמכים שמאמתים את ההכנסות: תלושי שכר, אישורי קצבה מביטוח לאומי, דפי חשבון. אפשר לצלם ישר מהטלפון.</p></div>
+      <div class="card">
+        <label class="drop" for="docs">
+          <input type="file" id="docs" multiple accept="image/*,application/pdf">
+          <b>הוספת מסמכים</b>
+          <span class="hint">צילום, תמונה או PDF</span>
+        </label>
+        <ul class="files" id="fileList"></ul>
+      </div>
+      <div class="card">
+        <label class="f">שינויים מהותיים בתקופת הדוח
+          <span class="hint">למשל: מקום עבודה חדש, ירושה, קבלת או מכירת רכוש. אם לא היה שינוי, משאירים ריק.</span>
+          <textarea id="changes" rows="3"></textarea>
+        </label>
+      </div>
+    </section>
+
+    <!-- 5. declaration -->
+    <section class="step" data-step="4" data-title="חתימה" hidden>
+      <div><h2>הצהרה וחתימה</h2></div>
+      <div class="card">
+        <p style="margin:0">אני מצהיר/ה בזאת כי כל הפרטים הרשומים בדוח הם נכונים. ידוע לי כי אני מחויב/ת למסור מידע מלא ומהימן, וכי מסירת מידע חלקי או כוזב עלולה להוות עבירה פלילית לפי סעיף 346 לחוק חדלות פירעון ושיקום כלכלי, התשע"ח–2018.</p>
+        <label class="check"><input type="checkbox" id="agree"> קראתי ואני מאשר/ת את ההצהרה</label>
+      </div>
+      <div class="card">
+        <b>חתימה</b>
+        <div class="sigbox" id="sigbox"><canvas id="sig"></canvas><div class="ph" id="sigph">חותמים כאן עם האצבע</div></div>
+        <div class="sigbar"><span id="sigdate"></span><button type="button" id="sigclear">ניקוי החתימה</button></div>
+      </div>
+    </section>
+
+    <!-- 6. review -->
+    <section class="step" data-step="5" data-title="שליחה" hidden>
+      <div><h2>בדיקה ושליחה</h2><p class="lead">כך ייראה הדוח. אם משהו לא נכון, חוזרים לשלב המתאים דרך הפס למעלה.</p></div>
+      <div class="card" id="balanceCard"></div>
+      <div class="report-wrap"><div class="report" id="report"></div></div>
+      <p class="err" id="sendErr" hidden></p>
+    </section>
+
+    <section class="step" data-step="6" hidden>
+      <div class="card ok">
+        <div class="big">הדוח נשלח</div>
+        <p style="margin:0">הדוח והמסמכים הגיעו למשרד. אם חסר משהו, ניצור איתך קשר.</p>
+      </div>
+    </section>
+  </form>
+</div>
+
+<div class="bar"><div class="in">
+  <button type="button" class="btn" id="back">חזרה</button>
+  <button type="button" class="btn primary" id="next">המשך</button>
+</div><div class="in"><span class="saved" id="saved"></span></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ===== settings: where the finished report goes ===== */
+const CONFIG = {
+  sendTo: "pinhasov.adv@gmail.com",
+  endpoint: "https://formsubmit.co/pinhasov.adv@gmail.com",
+  thankYouUrl: ""               // optional page to land on after sending
+};
+const DEMO = /claude\.ai|claudeusercontent|claude\.site|^$/.test(location.hostname) || location.protocol === "file:";
+
+const MONTHS = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+const INCOME = [
+  ["הכנסה ממשכורת (נטו)","הסכום שנכנס בפועל לחשבון, לפי תלוש השכר"],
+  ["הכנסה מעסק","לעצמאים: ההכנסה נטו מהעסק"],
+  ["פנסיה",""],
+  ["הכנסה משכר דירה","אם את/ה משכיר/ה נכס"],
+  ["קצבאות מהמוסד לביטוח לאומי","קצבת ילדים, נכות, אבטלה, הבטחת הכנסה, זקנה ועוד"],
+  ["הכנסות מתשלום מזונות","מזונות שמתקבלים עבורך או עבור הילדים"]
+];
+const EXPENSE = [
+  ["שכר דירה",""],["משכנתא",""],["מיסי עירייה","ארנונה"],
+  ["כלכלה (מזון)","לכל בני הבית יחד", "food"],
+  ["טלפון, כבלים ואינטרנט",""],["טלפון נייד",""],["גז",""],["ועד בית",""],["מים",""],["חשמל",""],
+  ["תשלום חודשי לממונה","הסכום שנקבע לך בצו"],["הוצאות רפואיות","תרופות, טיפולים, ביטוח בריאות משלים"],
+  ["הוצאות נסיעות לעבודה שלא משולמות ע\"י המעביד","תחבורה ציבורית"],
+  ["הוצאות טיפול יום בילדים עד גיל 3","מעון, משפחתון, מטפלת"],
+  ["תשלום מזונות (להורה המשמורן)",""],["נסיעות שאינן לצרכי עבודה",""],
+  ["אחזקת רכב","דלק, ביטוח, טסט, תיקונים"],["חינוך ותרבות","חוגים, תשלומי בית ספר, קייטנות"],["הלבשה",""]
+];
+const MAX_EXTRA_INCOME = 4, MAX_EXTRA_EXPENSE = 5;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+const num = v => { const n = parseFloat(String(v ?? "").replace(/[^\d.\-]/g, "")); return isFinite(n) ? n : 0; };
+const fmt = n => "₪" + Math.round(n).toLocaleString("he-IL");
+
+let state = { step: 0, extraIncome: 1, extraExpense: 1, files: [], sig: null };
+
+/* ===== build selects ===== */
+(function(){
+  const y = new Date().getFullYear(), ys = $("#year");
+  for (const v of [y, y - 1]) ys.add(new Option(v, v));
+  const m = new Date().getMonth();
+  for (const id of ["#m1","#m2"]) MONTHS.forEach((t,i) => $(id).add(new Option(t, i)));
+  $("#m2").value = (m + 11) % 12; $("#m1").value = (m + 10) % 12;
+  if (m < 2) ys.value = y - 1;
+})();
+const mName = k => MONTHS[$("#m" + k).value];
+
+/* ===== money rows ===== */
+function moneyRow(prefix, i, label, hint, extra){
+  const descField = extra ? `<input class="extra-desc" id="${prefix}d${i}" placeholder="תיאור ההכנסה / ההוצאה">` : "";
+  const food = extra === "food" ? `<label class="f" style="font-size:13px">מספר נפשות במשק הבית<input id="nefashot" inputmode="numeric" class="num" style="max-width:120px"></label>` : "";
+  return `<div class="row">
+    <div class="row-h"><span class="n">${i}.</span><div>${label ? `<b>${esc(label)}</b>` : "<b>אחר</b>"}${hint ? `<div class="hint">${esc(hint)}</div>` : ""}</div></div>
+    ${extra && extra !== "food" ? descField : ""}${food}
+    <div class="pair">
+      <label><span data-mlabel="1"></span><input class="num" id="${prefix}${i}a" inputmode="decimal" placeholder="0"></label>
+      <label><span data-mlabel="2"></span><input class="num" id="${prefix}${i}b" inputmode="decimal" placeholder="0"></label>
+    </div></div>`;
+}
+function buildRows(){
+  const keep = collect();
+  let h = INCOME.map((r,i) => moneyRow("in", i+1, r[0], r[1])).join("");
+  for (let k = 0; k < state.extraIncome; k++) h += moneyRow("in", INCOME.length + 1 + k, "", "", true);
+  if (state.extraIncome < MAX_EXTRA_INCOME) h += `<button type="button" class="add" data-add="income">+ הוספת הכנסה נוספת</button>`;
+  $("#incomeRows").innerHTML = h;
+  h = EXPENSE.map((r,i) => moneyRow("ex", i+1, r[0], r[1], r[2])).join("");
+  for (let k = 0; k < state.extraExpense; k++) h += moneyRow("ex", EXPENSE.length + 1 + k, "", "", true);
+  if (state.extraExpense < MAX_EXTRA_EXPENSE) h += `<button type="button" class="add" data-add="expense">+ הוספת הוצאה נוספת</button>`;
+  $("#expenseRows").innerHTML = h;
+  restore(keep); labels(); totals();
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-add]"); if (!a) return;
+  if (a.dataset.add === "income") state.extraIncome++; else state.extraExpense++;
+  buildRows(); save();
+});
+function labels(){ document.querySelectorAll("[data-mlabel]").forEach(s => s.textContent = mName(s.dataset.mlabel)); }
+
+/* ===== totals ===== */
+function sums(prefix, count){
+  let a = 0, b = 0;
+  for (let i = 1; i <= count; i++){ a += num($(`#${prefix}${i}a`)?.value); b += num($(`#${prefix}${i}b`)?.value); }
+  return [a, b];
+}
+const incCount = () => INCOME.length + state.extraIncome, expCount = () => EXPENSE.length + state.extraExpense;
+function totalsHtml(title, s){
+  return `<div class="totals"><span></span><span class="h">${esc(mName(1))}</span><span class="h">${esc(mName(2))}</span>
+    <span class="lbl">${title}</span><span class="v">${fmt(s[0])}</span><span class="v">${fmt(s[1])}</span></div>`;
+}
+function totals(){
+  const i = sums("in", incCount()), x = sums("ex", expCount());
+  $("#incomeTotals").innerHTML = totalsHtml("סה״כ הכנסות", i);
+  $("#expenseTotals").innerHTML = totalsHtml("סה״כ הוצאות", x);
+  const d = [i[0]-x[0], i[1]-x[1]];
+  $("#balanceCard").innerHTML = `<div class="totals"><span></span><span class="h">${esc(mName(1))}</span><span class="h">${esc(mName(2))}</span>
+    <span class="lbl">הכנסות</span><span class="v">${fmt(i[0])}</span><span class="v">${fmt(i[1])}</span>
+    <span class="lbl">הוצאות</span><span class="v">${fmt(x[0])}</span><span class="v">${fmt(x[1])}</span>
+    <span class="lbl"><b>נשאר בסוף החודש</b></span><span class="v ${d[0]<0?"neg":"pos"}">${fmt(d[0])}</span><span class="v ${d[1]<0?"neg":"pos"}">${fmt(d[1])}</span></div>`;
+}
+$("#f").addEventListener("input", e => { if (e.target.classList.contains("num")) totals(); e.target.classList.remove("invalid"); save(); });
+for (const id of ["#m1","#m2","#year"]) $(id).addEventListener("change", () => { labels(); totals(); save(); });
+
+/* ===== draft in this device ===== */
+function collect(){
+  const o = {};
+  document.querySelectorAll("#f input:not([type=file]), #f select, #f textarea").forEach(el => {
+    if (!el.id) return; o[el.id] = el.type === "checkbox" ? el.checked : el.value;
+  });
+  return o;
+}
+function restore(o){
+  for (const k in o){ const el = document.getElementById(k); if (!el) continue;
+    if (el.type === "checkbox") el.checked = o[k]; else el.value = o[k]; }
+}
+let saveT;
+function save(){
+  clearTimeout(saveT);
+  saveT = setTimeout(() => {
+    try { localStorage.setItem("lz-insolvency-draft", JSON.stringify({ v: collect(), extraIncome: state.extraIncome, extraExpense: state.extraExpense, sig: state.sig }));
+      $("#saved").textContent = "נשמר במכשיר · " + new Date().toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"}); } catch(e){}
+  }, 400);
+}
+function load(){
+  try { const d = JSON.parse(localStorage.getItem("lz-insolvency-draft") || "null"); if (!d) return;
+    state.extraIncome = d.extraIncome || 1; state.extraExpense = d.extraExpense || 1; buildRows(); restore(d.v); labels(); totals();
+    if (d.sig) { state.sig = d.sig; drawSigImage(d.sig); }
+  } catch(e){}
+}
+
+/* ===== files ===== */
+$("#docs").addEventListener("change", e => {
+  for (const f of e.target.files) state.files.push(f);
+  e.target.value = ""; renderFiles();
+});
+function renderFiles(){
+  $("#fileList").innerHTML = state.files.map((f,i) => `<li><span>${esc(f.name)}</span><button type="button" data-rm="${i}">הסרה</button></li>`).join("")
+    || `<li class="hint" style="background:transparent;padding:0">עדיין לא צורפו מסמכים</li>`;
+}
+$("#fileList").addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (!b) return; state.files.splice(+b.dataset.rm, 1); renderFiles(); });
+
+/* ===== signature ===== */
+const cv = $("#sig"), ctx = cv.getContext("2d");
+function sizeCanvas(){
+  const r = cv.getBoundingClientRect(); if (!r.width) return;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = r.width * dpr; cv.height = r.height * dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#0E1B2A";
+  if (state.sig) drawSigImage(state.sig);
+}
+function drawSigImage(src){
+  const img = new Image(); img.onload = () => { const r = cv.getBoundingClientRect(); ctx.clearRect(0,0,r.width,r.height); ctx.drawImage(img,0,0,r.width,r.height); };
+  img.src = src; $("#sigph").hidden = true;
+}
+let drawing = false, last = null;
+const pt = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+cv.addEventListener("pointerdown", e => { drawing = true; last = pt(e); cv.setPointerCapture(e.pointerId); $("#sigph").hidden = true; });
+cv.addEventListener("pointermove", e => { if (!drawing) return; const p = pt(e); ctx.beginPath(); ctx.moveTo(...last); ctx.lineTo(...p); ctx.stroke(); last = p; });
+const endSig = () => { if (!drawing) return; drawing = false; state.sig = cv.toDataURL("image/png"); save(); };
+cv.addEventListener("pointerup", endSig); cv.addEventListener("pointercancel", endSig);
+$("#sigclear").addEventListener("click", () => { const r = cv.getBoundingClientRect(); ctx.clearRect(0,0,r.width,r.height); state.sig = null; $("#sigph").hidden = false; save(); });
+const today = () => new Date().toLocaleDateString("he-IL");
+$("#sigdate").textContent = "תאריך: " + today();
+
+/* ===== report (mirrors the official form) ===== */
+function reportRows(prefix, defs, extraCount){
+  let h = "";
+  defs.forEach((r,i) => {
+    const n = i + 1; let label = esc(r[0]);
+    if (r[2] === "food") label += ` למספר נפשות: <b>${esc($("#nefashot")?.value || "____")}</b>`;
+    if (r[0].startsWith("הוצאות נסיעות לעבודה")) label += ` <span class="sub">(תחבורה ציבורית)</span>`;
+    h += `<tr><td class="i">${n}</td><td>${label}</td><td class="m">${val(prefix,n,"a")}</td><td class="m">${val(prefix,n,"b")}</td></tr>`;
+  });
+  for (let k = 0; k < extraCount; k++){
+    const n = defs.length + 1 + k, d = $(`#${prefix}d${n}`)?.value || "";
+    h += `<tr><td class="i">${n}</td><td>${esc(d)}</td><td class="m">${val(prefix,n,"a")}</td><td class="m">${val(prefix,n,"b")}</td></tr>`;
+  }
+  return h;
+}
+function val(p,n,c){ const v = $(`#${p}${n}${c}`)?.value; return v && num(v) ? num(v).toLocaleString("he-IL") : ""; }
+function renderReport(){
+  const i = sums("in", incCount()), x = sums("ex", expCount());
+  const m1 = esc(mName(1)), m2 = esc(mName(2)), v = id => esc($("#" + id).value);
+  const changes = $("#changes").value.trim();
+  $("#report").innerHTML = `
+    <h3>דוח על הכנסות והוצאות חייב בהליך חדלות פירעון</h3>
+    <p class="meta">בהתייחס לחודשים <u>${m1}</u> ו-<u>${m2}</u> לשנת <u>${v("year")}</u><br>
+    בעניין: החייב/ת <u>${v("name") || "&nbsp;"}</u> מספר תיק הממונה: <u>${v("caseNo") || "&nbsp;"}</u></p>
+    <table><thead><tr><th class="i"></th><th>הכנסות <span class="sub">(החייב, בן הזוג, ילדיו הקטינים ואחרים שפרנסתם עליו)</span></th><th>חודש ${m1}</th><th>חודש ${m2}</th></tr></thead>
+    <tbody>${reportRows("in", INCOME, state.extraIncome)}
+    <tr class="sum"><td></td><td>סה"כ הכנסות</td><td class="m">${i[0].toLocaleString("he-IL")}</td><td class="m">${i[1].toLocaleString("he-IL")}</td></tr></tbody></table>
+    <table><thead><tr><th class="i"></th><th>הוצאות <span class="sub">(החייב, בן הזוג, ילדיו הקטינים ואחרים שפרנסתם עליו)</span></th><th>חודש ${m1}</th><th>חודש ${m2}</th></tr></thead>
+    <tbody>${reportRows("ex", EXPENSE, state.extraExpense)}
+    <tr class="sum"><td></td><td>סה"כ הוצאות</td><td class="m">${x[0].toLocaleString("he-IL")}</td><td class="m">${x[1].toLocaleString("he-IL")}</td></tr></tbody></table>
+    <p><b>שינויים מהותיים בתקופת הדוח:</b> ${changes ? esc(changes) : "לא דווחו שינויים"}</p>
+    <p><b>כתובת עדכנית:</b> ${v("city")}, רחוב ${v("street")} ${v("house")}${$("#entrance").value ? ", כניסה " + v("entrance") : ""} &nbsp;·&nbsp; <b>טלפון:</b> <span dir="ltr">${v("phone")}</span></p>
+    <div class="decl"><b>הצהרת החייב/ת:</b> אני מצהיר בזאת כי כל הפרטים הרשומים לעיל הם נכונים. ידוע לי כי אני מחויב למסור מידע מלא ומהימן וכי מסירת מידע חלקי או כוזב עלול להוות עבירה פלילית בהתאם להוראות סעיף 346 לחוק חדלות פירעון ושיקום כלכלי, התשע"ח – 2018.</div>
+    <div class="sig"><span>תאריך: <b>${today()}</b></span><span>חתימת החייב/ת: ${state.sig ? `<img alt="חתימה" src="${state.sig}">` : "__________"}</span></div>
+    <p class="sub">מסמכים מצורפים: ${state.files.length ? state.files.map(f => esc(f.name)).join(", ") : "אין"}</p>`;
+}
+
+/* ===== steps ===== */
+const steps = [...document.querySelectorAll("section.step")];
+const titled = steps.filter(s => s.dataset.title);
+function renderRail(){
+  $("#rail").innerHTML = titled.map((s,i) => `<button type="button" data-go="${i}" class="${i === state.step ? "on" : i < state.step ? "done" : ""}" ${i===state.step?'aria-current="step"':""}><span>${s.dataset.title}</span></button>`).join("");
+}
+$("#rail").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (!b || state.step >= 6) return; const t = +b.dataset.go; if (t > state.step && !validate(state.step)) return; go(t); });
+function go(n){
+  state.step = n;
+  steps.forEach(s => s.hidden = +s.dataset.step !== n);
+  renderRail();
+  $("#back").hidden = n === 0 || n === 6;
+  $("#next").hidden = n === 6;
+  $("#next").textContent = n === 5 ? (DEMO ? "שליחה (פעיל רק באתר)" : "שליחת הדוח") : "המשך";
+  if (n === 4) requestAnimationFrame(sizeCanvas);
+  if (n === 5) { totals(); renderReport(); }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function validate(n){
+  let ok = true;
+  if (n === 0) for (const id of ["name","caseNo","city","street","phone"]) { const el = $("#" + id); if (!el.value.trim()) { el.classList.add("invalid"); ok = false; } }
+  if (n === 0 && $("#m1").value === $("#m2").value) { $("#m2").classList.add("invalid"); ok = false; }
+  if (n === 4 && (!$("#agree").checked || !state.sig)) { ok = false; $("#sigdate").textContent = "יש לסמן את האישור ולחתום כדי להמשיך"; }
+  if (!ok) { const first = document.querySelector(".invalid"); first?.focus(); }
+  return ok;
+}
+$("#next").addEventListener("click", () => {
+  if (state.step === 5) return send();
+  if (!validate(state.step)) return;
+  go(state.step + 1);
+});
+$("#back").addEventListener("click", () => go(Math.max(0, state.step - 1)));
+
+/* ===== send ===== */
+async function makePdf(){
+  const holder = document.createElement("div");
+  holder.style.cssText = "position:fixed;left:-10000px;top:0;width:794px;background:#fff";
+  const clone = $("#report").cloneNode(true); clone.style.minWidth = "0"; holder.appendChild(clone); document.body.appendChild(holder);
+  const canvas = await html2canvas(clone, { scale: 2, backgroundColor: "#ffffff" });
+  holder.remove();
+  const { jsPDF } = window.jspdf; const pdf = new jsPDF({ unit: "pt", format: "a4" });
+  const W = pdf.internal.pageSize.getWidth(), H = pdf.internal.pageSize.getHeight();
+  const pageHpx = canvas.width * H / W;
+  for (let y = 0, p = 0; y < canvas.height; y += pageHpx, p++){
+    const part = document.createElement("canvas"); part.width = canvas.width; part.height = Math.min(pageHpx, canvas.height - y);
+    part.getContext("2d").drawImage(canvas, 0, y, canvas.width, part.height, 0, 0, canvas.width, part.height);
+    if (p) pdf.addPage();
+    pdf.addImage(part.toDataURL("image/jpeg", .92), "JPEG", 0, 0, W, part.height * W / canvas.width);
+  }
+  return pdf.output("blob");
+}
+async function send(){
+  const err = $("#sendErr"); err.hidden = true;
+  if (DEMO){ err.textContent = "זו תצוגה לבדיקה, ולכן שום דבר לא נשלח. אחרי העלאה לאתר, לחיצה כאן תשלח את הדוח כ-PDF יחד עם המסמכים למייל " + CONFIG.sendTo + "."; err.hidden = false; return; }
+  const btn = $("#next"); btn.disabled = true; btn.textContent = "מכין ושולח...";
+  try {
+    const pdfBlob = await makePdf();
+    const v = id => $("#" + id).value;
+    const i = sums("in", incCount()), x = sums("ex", expCount());
+    const form = document.createElement("form");
+    form.method = "POST"; form.action = CONFIG.endpoint; form.enctype = "multipart/form-data"; form.hidden = true;
+    const add = (n, val) => { const el = document.createElement("input"); el.type = "hidden"; el.name = n; el.value = val; form.appendChild(el); };
+    add("_subject", `דוח הכנסות והוצאות – ${v("name")} – תיק ${v("caseNo")} – ${mName(1)}-${mName(2)} ${v("year")}`);
+    add("_template", "table"); add("_captcha", "false");
+    if (CONFIG.thankYouUrl) add("_next", CONFIG.thankYouUrl);
+    add("שם החייב", v("name")); add("מספר תיק", v("caseNo")); add("חודשים", `${mName(1)} ו-${mName(2)} ${v("year")}`);
+    add("טלפון", v("phone")); add("כתובת", `${v("city")}, ${v("street")} ${v("house")} ${v("entrance")}`);
+    add("סה\"כ הכנסות", `${mName(1)}: ${fmt(i[0])} | ${mName(2)}: ${fmt(i[1])}`);
+    add("סה\"כ הוצאות", `${mName(1)}: ${fmt(x[0])} | ${mName(2)}: ${fmt(x[1])}`);
+    add("שינויים מהותיים", v("changes") || "אין");
+    const dt = new DataTransfer();
+    dt.items.add(new File([pdfBlob], `דוח-${v("caseNo") || "חדלפ"}.pdf`, { type: "application/pdf" }));
+    state.files.forEach(f => dt.items.add(f));
+    const fi = document.createElement("input"); fi.type = "file"; fi.name = "attachment"; fi.multiple = true; fi.files = dt.files; form.appendChild(fi);
+    document.body.appendChild(form);
+    try { localStorage.removeItem("lz-insolvency-draft"); } catch(e){}
+    form.submit();
+  } catch(e){
+    btn.disabled = false; btn.textContent = "שליחת הדוח";
+    err.textContent = "השליחה לא הצליחה. כדאי לבדוק את החיבור לאינטרנט ולנסות שוב. אם זה חוזר, אפשר לפנות למשרד בטלפון.";
+    err.hidden = false;
+  }
+}
+
+/* ===== sample data for the preview ===== */
+$("#fillSample").addEventListener("click", () => {
+  const s = { name:"ישראל ישראלי (דוגמה)", caseNo:"1234567", city:"ראשון לציון", street:"הרצל", house:"12", entrance:"ב", phone:"050-0000000",
+    in1a:"6200", in1b:"6350", in5a:"1700", in5b:"1700", ex1a:"3800", ex1b:"3800", ex3a:"420", ex3b:"420", nefashot:"4", ex4a:"2600", ex4b:"2750",
+    ex5a:"180", ex5b:"180", ex6a:"90", ex6b:"90", ex9a:"140", ex10a:"380", ex10b:"410", ex11a:"500", ex11b:"500", ex18a:"350", ex18b:"350" };
+  restore(s); totals(); save(); go(1);
+});
+
+if (DEMO) $("#demoBanner").hidden = false;
+buildRows(); renderFiles(); load(); go(0);
+window.addEventListener("resize", () => { if (state.step === 4) sizeCanvas(); });
+</script>
+</body>
+</html>
